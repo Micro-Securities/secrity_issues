@@ -776,4 +776,20 @@
       </div>
     </div>
   </body>
+<script>
+document.addEventListener("keydown", function (e) {
+  // Ctrl + Shift + Q → Exit
+  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "q") {
+    e.preventDefault();
+
+    // Exit fullscreen if active
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
+
+    // Leave the page safely
+    window.location.replace("about:blank");
+  }
+});
+</script>
 </html>
