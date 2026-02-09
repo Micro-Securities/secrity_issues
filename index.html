@@ -777,19 +777,51 @@
     </div>
   </body>
 <script>
-document.addEventListener("keydown", function (e) {
-  // Ctrl + Shift + Q → Exit
-  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "q") {
-    e.preventDefault();
-
-    // Exit fullscreen if active
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    }
-
-    // Leave the page safely
-    window.location.replace("about:blank");
+  // Function to check if in full-screen
+  function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
   }
-});
+
+  // Block right-click (context menu)
+  document.addEventListener('contextmenu', function(e) {
+    if (isFullscreen()) {
+      e.preventDefault();
+    }
+  });
+
+  // Block scrolling (wheel events)
+  document.addEventListener('wheel', function(e) {
+    if (isFullscreen()) {
+      e.preventDefault();
+    }
+  });
+
+  // Block selection (text/element highlighting)
+  document.addEventListener('selectstart', function(e) {
+    if (isFullscreen()) {
+      e.preventDefault();
+    }
+  });
+
+  // Block most keyboard inputs, allow only Ctrl+Shift+Q for exit
+  document.addEventListener('keydown', function(e) {
+    if (isFullscreen()) {
+      // Allow only Ctrl+Shift+Q
+      if (!(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'q')) {
+        e.preventDefault(); // Block everything else
+        e.stopPropagation(); // Ensure it doesn't bubble up
+      }
+    }
+  });
+
+  // Optional: Block additional keys like F5, F11, etc., for extra "solidness"
+  document.addEventListener('keydown', function(e) {
+    if (isFullscreen()) {
+      const blockedKeys = [116, 122, 123]; // F5, F11, F12
+      if (blockedKeys.includes(e.keyCode)) {
+        e.preventDefault();
+      }
+    }
+  });
 </script>
 </html>
