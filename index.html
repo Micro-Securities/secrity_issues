@@ -776,52 +776,59 @@
       </div>
     </div>
   </body>
-<script>
-  // Function to check if in full-screen
-  function isFullscreen() {
-    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+// Function to check if in full-screen
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+}
+
+// Re-enter full-screen if exited (e.g., via Esc)
+document.addEventListener('fullscreenchange', function() {
+  if (!isFullscreen()) {
+    // Auto-re-enter after a short delay (but don't loop infinitely)
+    setTimeout(() => {
+      if (!isFullscreen()) { // Double-check
+        const el = document.documentElement;
+        (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullscreen || el.msRequestFullscreen).call(el);
+      }
+    }, 100); // 100ms delay to avoid loops
   }
+});
 
-  // Block right-click (context menu)
-  document.addEventListener('contextmenu', function(e) {
-    if (isFullscreen()) {
+// Block right-click, scrolling, selection (unchanged)
+document.addEventListener('contextmenu', function(e) {
+  if (isFullscreen()) e.preventDefault();
+});
+document.addEventListener('wheel', function(e) {
+  if (isFullscreen()) e.preventDefault();
+});
+document.addEventListener('selectstart', function(e) {
+  if (isFullscreen()) e.preventDefault();
+});
+
+// Stronger keyboard blocking
+document.addEventListener('keydown', function(e) {
+  if (isFullscreen()) {
+    // Specifically target Esc (keyCode 27) and block it
+    if (e.key === 'Escape' || e.keyCode === 27) {
+      e.preventDefault();
+      e.stopImmediatePropagation(); // Try to stop it dead
+      return false; // Extra block
+    }
+    // Allow only Ctrl+Shift+Q
+    if (!(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'q')) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  }
+}, true); // Use capture phase for priority
+
+// Block additional keys (unchanged)
+document.addEventListener('keydown', function(e) {
+  if (isFullscreen()) {
+    const blockedKeys = [116, 122, 123]; // F5, F11, F12
+    if (blockedKeys.includes(e.keyCode)) {
       e.preventDefault();
     }
-  });
-
-  // Block scrolling (wheel events)
-  document.addEventListener('wheel', function(e) {
-    if (isFullscreen()) {
-      e.preventDefault();
-    }
-  });
-
-  // Block selection (text/element highlighting)
-  document.addEventListener('selectstart', function(e) {
-    if (isFullscreen()) {
-      e.preventDefault();
-    }
-  });
-
-  // Block most keyboard inputs, allow only Ctrl+Shift+Q for exit
-  document.addEventListener('keydown', function(e) {
-    if (isFullscreen()) {
-      // Allow only Ctrl+Shift+Q
-      if (!(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'q')) {
-        e.preventDefault(); // Block everything else
-        e.stopPropagation(); // Ensure it doesn't bubble up
-      }
-    }
-  });
-
-  // Optional: Block additional keys like F5, F11, etc., for extra "solidness"
-  document.addEventListener('keydown', function(e) {
-    if (isFullscreen()) {
-      const blockedKeys = [116, 122, 123]; // F5, F11, F12
-      if (blockedKeys.includes(e.keyCode)) {
-        e.preventDefault();
-      }
-    }
-  });
-</script>
+  }
+});
 </html>
